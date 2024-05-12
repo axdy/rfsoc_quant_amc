@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2020.1 (64-bit)
+# SW Build 2902540 on Wed May 27 19:54:35 MDT 2020
+# IP Build 2902112 on Wed May 27 22:43:36 MDT 2020
+# Start of session at: Wed Jan 11 17:03:52 2023
+# Process ID: 1391785
+# Current directory: /home/andy/Documents/PhD/Development/dataset_builder/source_models/hdl_prj/ipcore/packet_generator_v1_1/prj_ip
+# Command line: vivado -mode batch -notrace -source vivado_ip_package.tcl
+# Log file: /home/andy/Documents/PhD/Development/dataset_builder/source_models/hdl_prj/ipcore/packet_generator_v1_1/prj_ip/vivado.log
+# Journal file: /home/andy/Documents/PhD/Development/dataset_builder/source_models/hdl_prj/ipcore/packet_generator_v1_1/prj_ip/vivado.jou
+#-----------------------------------------------------------
+source vivado_ip_package.tcl -notrace
