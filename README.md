@@ -5,7 +5,7 @@ The CNN model receives data samples from the RFSoC ADC and classifies the modula
 
 The signal is received via an RF loopback cable connected to the RF-DAC on the same board. The modulates signal has been distorted by passing it through a simulated Rician multipath channel, adding Gaussian noise at levels ranging from -20dB to 24dB, and applying time, frequency, clock offsets.
 
-*add gif*
+![demo.gif](demo.gif)
 
 ## Installation
 ### Run Demo
