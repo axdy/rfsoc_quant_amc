@@ -1,6 +1,14 @@
 import os
+import shutil
 from distutils.dir_util import copy_tree
 from setuptools import setup, find_packages
+
+# global variables
+package_name = 'rfsoc_quant_amc'
+board = os.environ['BOARD']
+repo_board_dir = f'boards/{board}/{package_name}'
+board_notebooks_dir = os.environ['PYNQ_JUPYTER_NOTEBOOKS']
+board_project_dir = os.path.join(board_notebooks_dir, package_name)
 
 class package_installer():
     def __init__(self,
@@ -17,13 +25,30 @@ class package_installer():
         for key in args:
             if key != 'self':
                 setattr(self, key, args[key])
+        # Run install functions
         self.check_board()
+        self.check_path()
+        self.copy_bitstream()
         self.copy_files()
         self.run_setup()
+
+    # check if the path already exists, delete if so.
+    def check_path(self):
+        if os.path.exists(board_project_dir):
+            shutil.rmtree(board_project_dir)
 
     def check_board(self):
         if not os.path.isdir(f'boards/{self.board}/{self.name}'):
             raise ValueError(f'Board {self.board} is not supported')
+        if not os.path.isdir(os.environ['PYNQ_JUPYTER_NOTEBOOKS']):
+            raise ValueError('PYNQ Jupyter Notebooks directory not found')
+        
+    def copy_bitstream(self):
+        src_dir = os.path.join(repo_board_dir, 'bitstream')
+        dst_dir = os.path.join(package_name, 'bitstream')
+        copy_tree(src_dir, dst_dir)
+
+    # def copy_notebooks()
     
     def copy_files(self):
         cwd = os.getcwd()
