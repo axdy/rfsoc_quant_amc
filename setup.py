@@ -5,85 +5,84 @@ from setuptools import setup, find_packages
 
 # global variables
 package_name = 'rfsoc_quant_amc'
+pip_name = 'rfsoc-quant-amc'
 board = os.environ['BOARD']
 repo_board_dir = f'boards/{board}/{package_name}'
+alt_overlay_folder = [f'boards/{board}/{package_name}']
 board_notebooks_dir = os.environ['PYNQ_JUPYTER_NOTEBOOKS']
 board_project_dir = os.path.join(board_notebooks_dir, package_name)
 
-class package_installer():
-    def __init__(self,
-                 name,
-                 version,
-                 description,
-                 author,
-                 email,
-                 license,
-                 url,
-                 pynq_version,
-                 board):
-        args = locals()
-        for key in args:
-            if key != 'self':
-                setattr(self, key, args[key])
-        # Run install functions
-        self.check_board()
-        self.check_path()
-        self.copy_bitstream()
-        self.copy_files()
-        self.run_setup()
+data_files = []
 
-    # check if the path already exists, delete if so.
-    def check_path(self):
-        if os.path.exists(board_project_dir):
-            shutil.rmtree(board_project_dir)
+# check if board is supported
+def check_env():
+    if not os.path.isdir(repo_board_dir):
+        raise ValueError("Board {} is not supported.".format(board))
+    if not os.path.isdir(board_notebooks_dir):
+        raise ValueError(
+            "Directory {} does not exist.".format(board_notebooks_dir))
 
-    def check_board(self):
-        if not os.path.isdir(f'boards/{self.board}/{self.name}'):
-            raise ValueError(f'Board {self.board} is not supported')
-        if not os.path.isdir(os.environ['PYNQ_JUPYTER_NOTEBOOKS']):
-            raise ValueError('PYNQ Jupyter Notebooks directory not found')
-        
-    def copy_bitstream(self):
-        src_dir = os.path.join(repo_board_dir, 'bitstream')
-        dst_dir = os.path.join(package_name, 'bitstream')
-        copy_tree(src_dir, dst_dir)
+# check if the path already exists, delete if so
+def check_path():
+    if os.path.exists(board_project_dir):
+        shutil.rmtree(board_project_dir)
 
-    # def copy_notebooks()
-    
-    def copy_files(self):
-        cwd = os.getcwd()
-        for prj in next(os.walk(os.path.join(cwd, 'boards', self.board)))[1]:
-            tmp_prj = os.path.join(cwd, 'boards', self.board, prj)
-            for directory in next(os.walk(tmp_prj))[1]:
-                src = os.path.join(tmp_prj, directory)
-                dst = os.path.join(cwd, self.name, prj, directory)
-                copy_tree(src, dst)
-    
-    def generate_pkg_dirs(self):
-        data_files = []
-        for directory in os.walk(os.path.join(os.getcwd(), self.name)):
-            for file in directory[2]:
-                data_files.append("".join([directory[0],"/",file]))
-        return data_files
-    
-    def run_setup(self):
-        setup(name=self.name,
-              version=self.version,
-              install_requires=[self.pynq_version],
-              url=self.url,
-              license=self.license,
-              author=self.author,
-              author_email=self.email,
-              packages=find_packages(),
-              package_data={'':self.generate_pkg_dirs()},
-              description=self.description)
-        
-package_installer(name='rfsoc_quant_amc',
-                  version='0.1',
-                  description='Modulation Classification for RFSoC using Quantised Neural Networks',
-                  author='Andrew Maclellan',
-                  email='a.maclellan@strath.ac.uk',
-                  license='BSD 3-Clause',
-                  url='https://github.com/axdy/rfsoc_quant_amc.git',
-                  pynq_version='pynq>=2.7',
-                  board = os.environ['BOARD'])
+# copy overlays to python package
+def copy_overlays():
+    for repo_folder in alt_overlay_folder:
+        src_ol_dir = os.path.join(repo_folder, 'bitstream')
+        dst_ol_dir = os.path.join(package_name, 'bitstream')
+        copy_tree(src_ol_dir, dst_ol_dir)
+        data_files.extend(
+            [os.path.join("..", dst_ol_dir, f) for f in os.listdir(dst_ol_dir)])
+
+# copy assets to python package
+def copy_assets():
+    src_at_dir = os.path.join(repo_board_dir, 'assets')
+    dst_at_dir = os.path.join(package_name, 'assets')
+    copy_tree(src_at_dir, dst_at_dir)
+    data_files.extend(
+        [os.path.join("..", dst_at_dir, f) for f in os.listdir(dst_at_dir)])
+
+# copy board specific drivers
+def copy_drivers():
+    src_dr_dir = os.path.join(repo_board_dir, 'drivers')
+    dst_dr_dir = os.path.join(package_name)
+    copy_tree(src_dr_dir, dst_dr_dir)
+
+# copy notebooks to jupyter home
+def copy_notebooks():
+    src_nb_dir = os.path.join(repo_board_dir, 'notebooks')
+    dst_nb_dir = os.path.join(board_project_dir)
+    copy_tree(src_nb_dir, dst_nb_dir)
+
+#  copy results to python package
+def copy_results():
+    src_at_dir = os.path.join(repo_board_dir, 'results')
+    dst_at_dir = os.path.join(package_name, 'results')
+    copy_tree(src_at_dir, dst_at_dir)
+    data_files.extend(
+        [os.path.join("..", dst_at_dir, f) for f in os.listdir(dst_at_dir)])
+
+check_env()
+check_path()
+copy_overlays()
+copy_assets()
+copy_drivers()
+copy_notebooks()
+copy_results()
+
+setup(
+    name=package_name,
+    version='0.1',
+    install_requires=['pynq>=3.0.1'],
+    url='https://github.com/axdy/rfsoc_quant_amc',
+    license='Creative Commons Attribution 4.0 International License (CC BY 4.0)',
+    author='Andrew Maclellan',
+    author_email='a.maclellan@strath.ac.uk',
+    packages=find_packages(),
+    package_data={
+        '': data_files,
+    },
+    description='Modulation Classification for RFSoC using Quantised Neural Networks',
+)
