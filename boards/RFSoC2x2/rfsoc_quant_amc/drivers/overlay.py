@@ -1,6 +1,7 @@
 __author__ = "Andrew Maclellan"
 __organisation__ = "StrathSDR"
 
+import os
 from pynq import Overlay
 from pynq import allocate
 import xrfclk
@@ -20,8 +21,8 @@ class Overlay(Overlay):
         
         # Use the default bitstream name
         if bitfile_name is None:
-            # bitfile_name = './bitstream/amc_3q_4x2.xsa'
-            bitfile_name = './bitstream/amc_3q_impr.bit'
+            this_dir = os.path.dirname(__file__)
+            bitfile_name = os.path.join(this_dir,'bitstream','amc_3q_impr.bit')
         
         # Init the Overlay base class
         super().__init__(bitfile_name, **kwargs)
