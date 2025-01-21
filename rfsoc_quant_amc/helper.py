@@ -1,3 +1,4 @@
+import os
 import pickle
 import numpy as np
 import plotly.graph_objects as go
@@ -33,22 +34,23 @@ def plot_received(re,im):
     return fig
 
 def load_results():
+    this_dir = os.path.dirname(__file__)
     # Load plots
-    with open('results/plot16w16a.pkl','rb') as f:
+    with open(os.path.join(this_dir,'results','plot16w16a.pkl'),'rb') as f:
         plot_16w = pickle.load(f)
-    with open('results/plot8w16a.pkl','rb') as f:
+    with open(os.path.join(this_dir,'results','plot8w16a.pkl'),'rb') as f:
         plot_8w = pickle.load(f)
-    with open('results/plot4w16a.pkl','rb') as f:
+    with open(os.path.join(this_dir,'results','plot4w16a.pkl'),'rb') as f:
         plot_4w = pickle.load(f)
         
     # Load accuracies
-    with open('results/16w16a_accuracies_dict.pkl','rb') as f:
+    with open(os.path.join(this_dir,'results','16w16a_accuracies_dict.pkl'),'rb') as f:    
         acc_16w = pickle.load(f)
     
-    with open('results/8w16a_accuracies_dict.pkl','rb') as f:
+    with open(os.path.join(this_dir,'results','8w16a_accuracies_dict.pkl'),'rb') as f:  
         acc_8w = pickle.load(f)
 
-    with open('results/4w16a_accuracies_dict.pkl','rb') as f:
+    with open(os.path.join(this_dir,'results','4w16a_accuracies_dict.pkl'),'rb') as f: 
         acc_4w = pickle.load(f)
         
     plot_16w.update_layout(width=1800,height=307)
@@ -69,7 +71,6 @@ def plot_accuracies(acc_16w, acc_8w, acc_4w):
         snrs_16w16a.append(np.average(plot_16w_16a_accuracies[snr]))
         snrs_8w16a.append(np.average(plot_8w_16a_accuracies[snr]))
         snrs_4w16a.append(np.average(plot_4w_16a_accuracies[snr]))
-    import plotly.graph_objects as go
     fig = go.Figure([go.Scatter(x=list(map(int,snrs)),y=snrs_16w16a,name='16w16a',mode='lines+markers', marker=dict(symbol='circle-open', size=8, color='#8ecddd')),
                      go.Scatter(x=list(map(int,snrs)),y=snrs_8w16a,name='8w16a',mode='lines+markers', marker=dict(symbol='square-open', size=8, color='#ed6a5e')),
                      go.Scatter(x=list(map(int,snrs)),y=snrs_4w16a,name='4w16a',mode='lines+markers', marker=dict(symbol='triangle-up-open', size=8, color='#ffcc70'))])
