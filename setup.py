@@ -36,14 +36,6 @@ def copy_overlays():
         data_files.extend(
             [os.path.join("..", dst_ol_dir, f) for f in os.listdir(dst_ol_dir)])
 
-# copy assets to python package
-def copy_assets():
-    src_at_dir = os.path.join(repo_board_dir, 'assets')
-    dst_at_dir = os.path.join(package_name, 'assets')
-    copy_tree(src_at_dir, dst_at_dir)
-    data_files.extend(
-        [os.path.join("..", dst_at_dir, f) for f in os.listdir(dst_at_dir)])
-
 # copy board specific drivers
 def copy_drivers():
     src_dr_dir = os.path.join(repo_board_dir, 'drivers')
@@ -67,7 +59,6 @@ def copy_results():
 check_env()
 check_path()
 copy_overlays()
-copy_assets()
 copy_drivers()
 copy_notebooks()
 copy_results()
