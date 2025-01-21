@@ -4,7 +4,7 @@ __organisation__ = "StrathSDR"
 from pynq import Overlay
 from pynq import allocate
 import xrfclk
-from rfsoc_quant_amc import clocks
+# from rfsoc_quant_amc import clocks
 import xrfdc
 import numpy as np
 
