@@ -1,6 +1,6 @@
 set overlay_name "rfsoc_quant_amc"
 set design_name "block_design"
-set iprepo_dir ./../ip
+set iprepo_dir ./../../ip
 
 # Create project
 create_project ${overlay_name} ./${overlay_name} -part xczu28dr-ffvg1517-2-e
