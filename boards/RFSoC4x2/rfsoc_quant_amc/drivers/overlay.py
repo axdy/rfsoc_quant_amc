@@ -7,6 +7,7 @@ import xrfclk
 from rfsoc_quant_amc import clocks
 import xrfdc
 import numpy as np
+import os
 
 class Overlay(Overlay):
     """Overlay class for controlling the AMC dataset
@@ -20,8 +21,8 @@ class Overlay(Overlay):
         
         # Use the default bitstream name
         if bitfile_name is None:
-            # bitfile_name = './bitstream/amc_3q_4x2.xsa'
-            bitfile_name = './bitstream/rfsoc_amc_qat.bit'
+            this_dir = os.path.dirname(__file__)
+            bitfile_name = os.path.join(this_dir,'bitstream','rfsoc_amc_qat.bit')
         
         # Init the Overlay base class
         super().__init__(bitfile_name, **kwargs)
