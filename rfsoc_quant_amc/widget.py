@@ -1,17 +1,14 @@
-__author__ = "Andrew Maclellan"
-__organisation__ = "StrathSDR"
+from __future__ import print_function
 from ipywidgets import interact, interactive, fixed, interact_manual
 import ipywidgets as ipw
 import random
 import plotly.graph_objs as go
 import plotly.subplots as sp
-from plotly.subplots import make_subplots
 import numpy as np
 from IPython.display import display
 from rfsoc_quant_amc.overlay import Overlay
 import pickle
 from IPython.display import Javascript, display
-import xrfdc
 
 align_kw = dict(
     _css = (('.widget-label', 'min-width', '20ex'),),
@@ -24,8 +21,9 @@ class AMCWidget():
         self.data = data
         self.classes = classes
         self.snrs = snrs
+        # Load Overlay
         self.ol = ol
-
+        # plotly widgets
         self._plotout = go.FigureWidget(
             layout = go.Layout(
                 title='Received Signal',
@@ -107,11 +105,32 @@ class AMCWidget():
                 font = dict(size=16)
             )
         )
+        self._bar_3 = go.FigureWidget(
+            layout = go.Layout(
+                title='Classification Confidence 2w16a',
+                width=500,
+                height=400,
+                xaxis_title='modulation schemes',
+                yaxis_title='percentage confidence (%)',
+                font = dict(size=16),
+                yaxis = dict(range=[0,100]),
+            )
+        )
+        self._cm_3 = go.FigureWidget(
+            layout = go.Layout(
+                title='Prediction Confusion Matrix 2w16a',
+                width = 500,
+                height = 500,
+                xaxis_title = 'true label',
+                yaxis_title = 'predicted label',
+                font = dict(size=16)
+            )
+        )
         self.mod_panel = self.widget_display()
         
     def display(self):
         display(self.mod_panel)
-    
+        
     def widget_display(self):
         self.mod_choice = ipw.Dropdown(
             options=self.classes,
@@ -158,54 +177,32 @@ class AMCWidget():
             tooltip='Receive',
             **align_kw
         )
-        self.freq_mhz = ipw.BoundedFloatText(value = 400.0,
-                                             min = 100.0,
-                                             max = 500.0,
-                                             step = 5.0,
-                                             description='Carrier Frequency (MHz)',
-                                             style={'description_width': 'initial'},
-                                             disabled=False)
         self.play = ipw.Play(min=1, interval=500, layout = {'margin':'0 0 0 50px'},)
-        self.play.observe(self.play_press, names='value')
-        self.button_box = ipw.Box([self.button])
+        self.play.observe(self.play_press, 'value')
+        self.button_box = ipw.Box([self.button], layout = ipw.widgets.Layout(justify_content='center'))
         self.button.on_click(self.press_button)
         self.rx_button.on_click(self.press_rx_button)
-        self.freq_mhz.observe(self.update_fc, 'value')
-        self.update_mod = ipw.VBox([self.mod_choice, self.snr_slider,self.button], layout = ipw.widgets.Layout(padding='0 0 50px 0'))
-        self.rx_phase = ipw.VBox([self.phase_slider, self.play], layout = ipw.widgets.Layout(padding='0 0 50px 0'))
-        button_label = ipw.HTML(value="<u><b>Transmission Control</b></u>")
-        freq_label = ipw.HTML(value="<u><b>RFSoC Frequency</b></u>")
-        button_vert = ipw.VBox([button_label, self.update_mod, self.rx_phase,freq_label, self.freq_mhz], layout = ipw.widgets.Layout(width='350px'))
-        self._plot_box = ipw.HBox([button_vert, self._plotin, self._plotout])
-        def create_expanded_button(description, button_style):
-            return ipw.Button(description=description, button_style=button_style, layout=ipw.Layout(height='auto', width='auto'))
-
-        # Grid Box
-        grid = ipw.GridspecLayout(3,3)
-        grid[0,0] = button_vert
-        grid[0,1] = ipw.Box([self._plotin])
-        grid[0,2] = ipw.Box([self._plotout])
-        grid[1,0] = ipw.Box([self._cm_0])
-        grid[1,1] = ipw.Box([self._cm_1])
-        grid[1,2] = ipw.Box([self._cm_2])
-        grid[2,0] = ipw.Box([self._bar_0])
-        grid[2,1] = ipw.Box([self._bar_1])
-        grid[2,2] = ipw.Box([self._bar_2])
-        return grid
-    
-    def update_fc(self,value):
-        self.ol.adc_block.MixerSettings['Freq'] = value['new']
-        self.ol.dac_block.MixerSettings['Freq'] = value['new']
-        self.ol.dac_block.UpdateEvent(xrfdc.EVENT_MIXER)
-        self.ol.dac_tile.SetupFIFO(True)
-        self.ol.adc_block.UpdateEvent(xrfdc.EVENT_MIXER)
-        self.ol.adc_tile.SetupFIFO(True)
-        
+        self.update_mod = ipw.VBox([self.mod_choice, self.snr_slider,self.button], layout = ipw.widgets.Layout(justify_content='center',padding='100px 0 100px 0'))
+        self.rx_phase = ipw.VBox([self.phase_slider, self.play])
+        button_vert = ipw.VBox([self.update_mod, self.rx_phase], layout = ipw.widgets.Layout(width='350px'))
+        self._plot_box = ipw.HBox(
+            [button_vert, self._plotin, self._plotout],
+            layout = ipw.widgets.Layout(justify_content='center')
+        )
+        # graph_vert = ipw.VBox([self._cm, self._bar], layout = ipw.widgets.Layout(justify_content='center'))
+        graph_vert_0 = ipw.HBox([self._cm_0, self._cm_1, self._cm_2, self._cm_3], layout = ipw.widgets.Layout(justify_content='center'))
+        graph_vert_1 = ipw.HBox([self._bar_0, self._bar_1, self._bar_2, self._bar_3], layout = ipw.widgets.Layout(justify_content='center'))
+        vert_box = ipw.VBox([self._plot_box, graph_vert_0, graph_vert_1], layout=ipw.widgets.Layout(justify_content='center'))
+        mod_panel = ipw.HBox([vert_box], layout=ipw.widgets.Layout(align_items='center',
+                                                                                justify_content='center',
+                                                                                border='solid',
+                                                                                width='1800px'))
+        return mod_panel
     
     def play_press(self,_):
         self.ol.phase_offset_tx = self.phase_slider.value
         mod = self.mod_choice.value
-        [y_pred_0, y_pred_1, y_pred_2, re_data, im_data] = self.receive_data()
+        [y_pred_0, y_pred_1, y_pred_2, y_pred_3, re_data, im_data] = self.receive_data()
         if not self._plotout.data:
             self._plotout.add_trace(go.Scatter(y=re_data, name='real', line_color='#219ebc'))
             self._plotout.add_trace(go.Scatter(y=im_data, name='imag', line_color='#ffb703'))
@@ -227,7 +224,12 @@ class AMCWidget():
             self._bar_2.add_trace(go.Bar(x=self.classes, y=100*y_pred_2,marker={'color':'#219ebc'}))
         else:
             self._bar_2.data[0]['y'] = 100*y_pred_2
-        self.confusion_matrix(y_pred_0, y_pred_1, y_pred_2, mod)
+        # 2w16a
+        if not self._bar_3.data:
+            self._bar_3.add_trace(go.Bar(x=self.classes, y=100*y_pred_3,marker={'color':'#219ebc'}))
+        else:
+            self._bar_3.data[0]['y'] = 100*y_pred_3
+        self.confusion_matrix(y_pred_0, y_pred_1, y_pred_2, y_pred_3, mod)
     
     def extract_data(self,mod,snr):
         random_idx = np.random.randint(self.data[mod,snr].shape[2])
@@ -238,7 +240,7 @@ class AMCWidget():
         mod = self.mod_choice.value
         snr = self.snr_slider.value
         sample_X = self.extract_data(mod,snr)
-        [y_pred_0, y_pred_1, y_pred_2, re_data, im_data] = self.predict(sample_X)
+        [y_pred_0, y_pred_1, y_pred_2, y_pred_3, re_data, im_data] = self.predict(sample_X)
         if not self._plotout.data:
             self._plotout.add_trace(go.Scatter(y=re_data, name='real', line_color='#219ebc'))
             self._plotout.add_trace(go.Scatter(y=im_data, name='imag', line_color='#ffb703'))
@@ -252,23 +254,27 @@ class AMCWidget():
             self._plotin.data[0]['y'] = sample_X[0,:]
             self._plotin.data[1]['y'] = sample_X[1,:]
         if not self._bar_0.data:
-            self._bar_0.add_trace(go.Bar(x=self.classes, y=100*y_pred_0,marker={'color':'#219ebc'}))
+            self._bar_0.add_trace(go.Bar(x=self.classes, y=100*y_pred_0,marker={'color':'#0086cb'}))
         else:
             self._bar_0.data[0]['y'] = 100*y_pred_0
         if not self._bar_1.data:
-            self._bar_1.add_trace(go.Bar(x=self.classes, y=100*y_pred_1,marker={'color':'#219ebc'}))
+            self._bar_1.add_trace(go.Bar(x=self.classes, y=100*y_pred_1,marker={'color':'#ea6b66'}))
         else:
             self._bar_1.data[0]['y'] = 100*y_pred_1
         if not self._bar_2.data:
-            self._bar_2.add_trace(go.Bar(x=self.classes, y=100*y_pred_2,marker={'color':'#219ebc'}))
+            self._bar_2.add_trace(go.Bar(x=self.classes, y=100*y_pred_2,marker={'color':'#82b366'}))
         else:
             self._bar_2.data[0]['y'] = 100*y_pred_2
-        self.confusion_matrix(y_pred_0, y_pred_1, y_pred_2, mod)
+        if not self._bar_3.data:
+            self._bar_3.add_trace(go.Bar(x=self.classes, y=100*y_pred_3,marker={'color':'#d6b656'}))
+        else:
+            self._bar_3.data[0]['y'] = 100*y_pred_3
+        self.confusion_matrix(y_pred_0, y_pred_1, y_pred_2, y_pred_3, mod)
         
     def press_rx_button(self,_):
         self.ol.phase_offset_tx = self.phase_slider.value
         mod = self.mod_choice.value
-        [y_pred_0, y_pred_1, y_pred_2, re_data, im_data] = self.receive_data()
+        [y_pred_0, y_pred_1, y_pred_2, y_pred_3, re_data, im_data] = self.receive_data()
         if not self._plotout.data:
             self._plotout.add_trace(go.Scatter(y=re_data, name='real', line_color='#219ebc'))
             self._plotout.add_trace(go.Scatter(y=im_data, name='imag', line_color='#ffb703'))
@@ -287,10 +293,14 @@ class AMCWidget():
             self._bar_2.add_trace(go.Bar(x=self.classes, y=100*y_pred_2,marker={'color':'#219ebc'}))
         else:
             self._bar_2.data[0]['y'] = 100*y_pred_2
-        self.confusion_matrix(y_pred_0, y_pred_1, y_pred_2, mod)
+        if not self._bar_3.data:
+            self._bar_3.add_trace(go.Bar(x=self.classes, y=100*y_pred_3,marker={'color':'#219ebc'}))
+        else:
+            self._bar_3.data[0]['y'] = 100*y_pred_3
+        self.confusion_matrix(y_pred_0, y_pred_1, y_pred_2, y_pred_3, mod)
     
     def predict(self, sample_X):
-        y = np.int16(sample_X*np.int16(pow(2,13)))
+        y = np.int16(sample_X*np.int16(pow(2,14)))
         z = np.zeros(2*4096, dtype=np.int16)
         z[0::2] = y[0,:]
         z[1::2] = y[1,:]
@@ -298,26 +308,29 @@ class AMCWidget():
         self.ol.cnn.write(0x100,1)
         self.ol.cnn_1.write(0x100,1)
         self.ol.cnn_2.write(0x100,1)
-        [y_pred0,y_pred1,y_pred2,complex_data] = self.ol.receive()
+        self.ol.cnn_3.write(0x100,1)
+        [y_pred0,y_pred1,y_pred2,y_pred3,complex_data] = self.ol.receive()
         y_pred0 = self.softmax(y_pred0)
         y_pred1 = self.softmax(y_pred1)
         y_pred2 = self.softmax(y_pred2)
+        y_pred3 = self.softmax(y_pred3)
         [re_data, im_data] = self.complex2realimag(complex_data)
-        return y_pred0, y_pred1, y_pred2, re_data, im_data
+        return y_pred0, y_pred1, y_pred2, y_pred3, re_data, im_data
     
     def receive_data(self):
-        [y_pred_raw_0, y_pred_raw_1, y_pred_raw_2, complex_data] = self.ol.receive()
+        [y_pred_raw_0, y_pred_raw_1, y_pred_raw_2, y_pred_raw_3, complex_data] = self.ol.receive()
         [re_data, im_data] = self.complex2realimag(complex_data)
         y_pred_0 = self.softmax(y_pred_raw_0)
         y_pred_1 = self.softmax(y_pred_raw_1)
         y_pred_2 = self.softmax(y_pred_raw_2)
-        return y_pred_0, y_pred_1, y_pred_2, re_data, im_data
+        y_pred_3 = self.softmax(y_pred_raw_3)
+        return y_pred_0, y_pred_1, y_pred_2, y_pred_3, re_data, im_data
     
-    def confusion_matrix(self, y_pred_0, y_pred_1, y_pred_2, mod):
-        mods = ['QPSK','BPSK','QAM16','QAM64','PSK8','PAM4','GFSK','CPFSK']
+    def confusion_matrix(self, y_pred_0, y_pred_1, y_pred_2, y_pred_3, mod):
         conf_0 = np.zeros([len(self.classes), len(self.classes)])
         conf_1 = np.zeros([len(self.classes), len(self.classes)])
         conf_2 = np.zeros([len(self.classes), len(self.classes)])
+        conf_3 = np.zeros([len(self.classes), len(self.classes)])
         confnorm = np.zeros([len(self.classes), len(self.classes)])
         j = np.zeros([len(self.classes),1])
         j[self.classes.index(mod)] = 1
@@ -325,21 +338,27 @@ class AMCWidget():
         k_0 = int(np.argmax(y_pred_0))
         k_1 = int(np.argmax(y_pred_1))
         k_2 = int(np.argmax(y_pred_2))
+        k_3 = int(np.argmax(y_pred_3))
         conf_0[k_0,:] = j
         conf_1[k_1,:] = j
         conf_2[k_2,:] = j
+        conf_3[k_3,:] = j
         if not self._cm_0.data:
-            self._cm_0.add_trace(go.Heatmap(z=conf_0,x=mods,y=mods, colorscale=['#ffffff', '#023047']))
+            self._cm_0.add_trace(go.Heatmap(z=conf_0, colorscale=['#ffffff', '#0086cb']))
         else:
             self._cm_0.data[0]['z'] = conf_0
         if not self._cm_1.data:
-            self._cm_1.add_trace(go.Heatmap(z=conf_1, x=mods,y=mods, colorscale=['#ffffff', '#023047']))
+            self._cm_1.add_trace(go.Heatmap(z=conf_1, colorscale=['#ffffff', '#ea6b66']))
         else:
             self._cm_1.data[0]['z'] = conf_1
         if not self._cm_2.data:
-            self._cm_2.add_trace(go.Heatmap(z=conf_2, x=mods,y=mods, colorscale=['#ffffff', '#023047']))
+            self._cm_2.add_trace(go.Heatmap(z=conf_2, colorscale=['#ffffff', '#82b366']))
         else:
             self._cm_2.data[0]['z'] = conf_2
+        if not self._cm_3.data:
+            self._cm_3.add_trace(go.Heatmap(z=conf_3, colorscale=['#ffffff', '#d6b656']))
+        else:
+            self._cm_3.data[0]['z'] = conf_3
     
     def complex2realimag(self, complex_data):
         re_data = np.int16(np.bitwise_and(complex_data,0xFFFF))
@@ -350,9 +369,9 @@ class AMCWidget():
         """Compute softmax values for each sets of scores in x."""
         e_x = np.exp(x - np.max(x))
         return e_x / e_x.sum()
-
-    # Accuracy plots
-def make_acc_plots(ol, dataset, load=False):
+    
+# Accuracy plots
+def make_acc_plots(ol, load=False):
     mods = ['QPSK','BPSK','QAM16','QAM64','PSK8','PAM4','GFSK','CPFSK']
     snrs = ['-20','-16','-12','-8','-4','0','4','8','12','16','20','24', '28', '30']
     snrs_small = ['-16','-8','0','8','16','24','28','30']
