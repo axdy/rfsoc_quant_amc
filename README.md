@@ -24,7 +24,7 @@ Data set construction:
 Make sure the RFSoC is connected to the internet (otherwise, zip the github repo and copy over to the RFSoC).
 
 Install with:
-- `pip3 install git+https://github.com/strath-sdr/rfsoc_ofdm`
+- `pip3 install git+https://github.com/strath-sdr/rfsoc_quant_amc`
 - If you want to have the test set data please pull from Git LFS (500MB): `git lfs pull`
 
 
