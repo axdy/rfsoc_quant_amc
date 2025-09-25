@@ -1,71 +1,30 @@
 import os
 import shutil
-from distutils.dir_util import copy_tree  # note: deprecated, but fine here
+from distutils.dir_util import copy_tree  # note: distutils is deprecated but works; shutil.copytree is an alt
 from setuptools import setup, find_packages
 
 # --- globals ---
 package_name = 'rfsoc_quant_amc'
 pip_name = 'rfsoc-quant-amc'
+board = os.environ['BOARD']
+repo_board_dir = f'boards/{board}/{package_name}'
+alt_overlay_folder = [f'boards/{board}/{package_name}']
+board_notebooks_dir = os.environ['PYNQ_JUPYTER_NOTEBOOKS']
+board_project_dir = os.path.join(board_notebooks_dir, package_name)
 
-# Environment (optional; when absent we skip board-specific steps)
-BOARD = os.environ.get('BOARD')
-PYNQ_JUPYTER_NOTEBOOKS = os.environ.get('PYNQ_JUPYTER_NOTEBOOKS')
-
-repo_root = os.path.abspath(os.path.dirname(__file__))
-
-# Paths that depend on BOARD / PYNQ
-if BOARD:
-    repo_board_dir = f'boards/{BOARD}/{package_name}'
-    alt_overlay_folder = [f'boards/{BOARD}/{package_name}']
-else:
-    repo_board_dir = None
-    alt_overlay_folder = []
-
-if PYNQ_JUPYTER_NOTEBOOKS:
-    board_notebooks_dir = PYNQ_JUPYTER_NOTEBOOKS
-    board_project_dir = os.path.join(board_notebooks_dir, package_name)
-else:
-    board_notebooks_dir = None
-    board_project_dir = None
-
-# We'll build this up and pass to setup(package_data=...)
+# we'll build this up and hand it to setup(package_data=...)
 package_data = {package_name: []}
-
-def _log(msg):
-    print(f"[setup.py] {msg}")
 
 # --- helpers ---
 def check_env():
-    """Validate env only if provided; otherwise we operate in 'package-only' mode."""
-    if BOARD:
-        if not os.path.isdir(f'boards/{BOARD}'):
-            raise ValueError(f"Board '{BOARD}' not found under boards/.")
-        if not os.path.isdir(repo_board_dir):
-            raise ValueError(f"Board {BOARD} is not supported (missing {repo_board_dir}).")
-    else:
-        _log("BOARD not set → skipping board-specific overlay/driver/notebook steps.")
-
-    if PYNQ_JUPYTER_NOTEBOOKS:
-        if not os.path.isdir(board_notebooks_dir):
-            raise ValueError(f"Directory {board_notebooks_dir} does not exist.")
-    else:
-        _log("PYNQ_JUPYTER_NOTEBOOKS not set → skipping notebook copy step.")
+    if not os.path.isdir(repo_board_dir):
+        raise ValueError(f"Board {board} is not supported (missing {repo_board_dir}).")
+    if not os.path.isdir(board_notebooks_dir):
+        raise ValueError(f"Directory {board_notebooks_dir} does not exist.")
 
 def check_path():
-    """Safely clear the notebooks target, but never delete inside the repo."""
-    if not board_project_dir:
-        return
-    abs_target = os.path.abspath(board_project_dir)
-    # Refuse to delete anything inside the repository
-    if os.path.commonpath([abs_target, repo_root]) == repo_root:
-        raise SystemExit(
-            f"Refusing to delete {abs_target}: it is inside the repository.\n"
-            "Set PYNQ_JUPYTER_NOTEBOOKS to a directory outside the repo "
-            "(e.g., /home/xilinx/jupyter_notebooks)."
-        )
-    if os.path.exists(abs_target):
-        _log(f"Removing existing notebook dir: {abs_target}")
-        shutil.rmtree(abs_target)
+    if os.path.exists(board_project_dir):
+        shutil.rmtree(board_project_dir)
 
 def _append_package_data_under(pkg_root, dst_dir):
     """
@@ -76,18 +35,8 @@ def _append_package_data_under(pkg_root, dst_dir):
             rel_path = os.path.relpath(os.path.join(root, f), pkg_root)
             package_data.setdefault(package_name, []).append(rel_path)
 
-def _is_lfs_pointer(path):
-    try:
-        with open(path, "rb") as f:
-            head = f.read(256)
-        return b"version https://git-lfs.github.com/spec" in head
-    except FileNotFoundError:
-        return True
-
 # copy overlays to python package (now INSIDE the package)
 def copy_overlays():
-    if not BOARD:
-        return
     for repo_folder in alt_overlay_folder:
         src_ol_dir = os.path.join(repo_folder, 'bitstream')
         if not os.path.isdir(src_ol_dir):
@@ -96,12 +45,9 @@ def copy_overlays():
         os.makedirs(dst_ol_dir, exist_ok=True)
         copy_tree(src_ol_dir, dst_ol_dir)
         _append_package_data_under(package_name, dst_ol_dir)
-        _log(f"Packaged overlays from {src_ol_dir} → {dst_ol_dir}")
 
 # copy board specific drivers (already inside package root)
 def copy_drivers():
-    if not BOARD:
-        return
     src_dr_dir = os.path.join(repo_board_dir, 'drivers')
     if not os.path.isdir(src_dr_dir):
         return
@@ -109,23 +55,17 @@ def copy_drivers():
     os.makedirs(dst_dr_dir, exist_ok=True)
     copy_tree(src_dr_dir, dst_dr_dir)
     _append_package_data_under(package_name, dst_dr_dir)
-    _log(f"Packaged drivers from {src_dr_dir} → {dst_dr_dir}")
 
 # copy notebooks to jupyter home (this is outside the wheel on purpose)
 def copy_notebooks():
-    if not (BOARD and board_project_dir):
-        return
     src_nb_dir = os.path.join(repo_board_dir, 'notebooks')
     if not os.path.isdir(src_nb_dir):
         return
     dst_nb_dir = board_project_dir
     copy_tree(src_nb_dir, dst_nb_dir)
-    _log(f"Installed notebooks to {dst_nb_dir}")
 
 # copy xrfclk files into the package (gen3 devices only)
 def copy_xrfclk():
-    if not BOARD:
-        return
     src_at_dir = os.path.join(repo_board_dir, 'xrfclk')
     if not os.path.isdir(src_at_dir):
         return
@@ -133,33 +73,65 @@ def copy_xrfclk():
     os.makedirs(dst_at_dir, exist_ok=True)
     copy_tree(src_at_dir, dst_at_dir)
     _append_package_data_under(package_name, dst_at_dir)
-    _log(f"Packaged xrfclk from {src_at_dir} → {dst_at_dir}")
 
-# Ensure data/ is included and the .pkl is not an LFS pointer
-def include_and_verify_data():
-    data_dir = os.path.join(package_name, 'data')
-    if os.path.isdir(data_dir):
-        _append_package_data_under(package_name, data_dir)
-        _log(f"Included data directory: {data_dir}")
-    pkl_path = os.path.join(package_name, 'data', 'transmit_test_SNR.pkl')
-    if _is_lfs_pointer(pkl_path):
-        raise SystemExit(
-            "Error: rfsoc_quant_amc/data/transmit_test_SNR.pkl is missing or is a Git LFS pointer.\n"
-            "Run: git lfs install && git lfs fetch --all && git lfs checkout\n"
-            "Then rebuild or reinstall the package."
-        )
+def copy_large_asset():
+    """
+    Find the large asset and place it alongside the notebooks in board_project_dir.
+
+    Priority:
+      1) boards/<board>/rfsoc_quant_amc/<asset>
+      2) <repo_root>/rfsoc_quant_amc/data/<asset>  (NEW default location)
+      3) boards/<board>/rfsoc_quant_amc/data/<asset>
+      4) <repo_root>/<asset> (legacy root fallback)
+      If only a data/ directory is found, copy all files within it.
+    """
+    asset_name = os.environ.get('RFML_ASSET', 'transmit_test_SNR.pkl')
+    repo_root = os.path.dirname(__file__)
+
+    candidates = [
+        os.path.join(repo_board_dir, asset_name),                                   # boards/<board>/rfsoc_quant_amc/<asset>
+        os.path.join(repo_root, package_name, 'data', asset_name),                  # <repo_root>/rfsoc_quant_amc/data/<asset>  (NEW)
+        os.path.join(repo_board_dir, 'data', asset_name),                           # boards/<board>/rfsoc_quant_amc/data/<asset>
+        os.path.join(repo_root, asset_name),                                        # legacy root
+    ]
+
+    # Try direct file hits first
+    for src in candidates:
+        if os.path.isfile(src):
+            os.makedirs(board_project_dir, exist_ok=True)
+            dst = os.path.join(board_project_dir, asset_name)
+            shutil.copy2(src, dst)
+            print(f"Copied {src} -> {dst}")
+            return
+
+    # If not found as a single file, try copying any/all files under the new data/ locations
+    data_dirs = [
+        os.path.join(repo_root, package_name, 'data'),
+        os.path.join(repo_board_dir, 'data'),
+    ]
+
+    for ddir in data_dirs:
+        if os.path.isdir(ddir):
+            files = [f for f in os.listdir(ddir) if os.path.isfile(os.path.join(ddir, f))]
+            if files:
+                os.makedirs(board_project_dir, exist_ok=True)
+                for f in files:
+                    src = os.path.join(ddir, f)
+                    dst = os.path.join(board_project_dir, f)
+                    shutil.copy2(src, dst)
+                    print(f"Copied {src} -> {dst}")
+                return
+
+    print("Warning: large asset not found (looked for transmit_test_SNR.pkl and/or data/); skipping.")
 
 # --- run steps before setup() so the files exist when building the wheel/sdist ---
-_log(f"BOARD={BOARD!r}")
-_log(f"PYNQ_JUPYTER_NOTEBOOKS={PYNQ_JUPYTER_NOTEBOOKS!r}")
-
 check_env()
 check_path()
 copy_overlays()
 copy_drivers()
 copy_notebooks()
 copy_xrfclk()
-include_and_verify_data()
+copy_large_asset()
 
 setup(
     name=package_name,
@@ -170,7 +142,7 @@ setup(
     author='Andrew Maclellan',
     author_email='a.maclellan@strath.ac.uk',
     packages=find_packages(include=[package_name, f"{package_name}.*"]),
-    include_package_data=True,      # ensure MANIFEST.in is honored for sdist
-    package_data=package_data,      # overlays / drivers / xrfclk / data included in wheel
+    include_package_data=True,              # make sure package_data is included
+    package_data=package_data,              # <-- use what we built, not {'': data_files}
     description='Modulation Classification for RFSoC using Dataflow Quantised CNNs',
 )
