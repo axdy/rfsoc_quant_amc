@@ -13,7 +13,7 @@ class Overlay(Overlay):
     """Overlay class for controlling the AMC dataset
     """
     
-    def __init__(self, bitfile_name=None, **kwargs):
+    def __init__(self, bitfile_name=None, model='qat', **kwargs):
         """Setup Overlay for the RFSoC transmission and reception
         bitfile_name: Optional. If left None, the bitstream 'amc_3q_4x2.bit'
                       will be used.
@@ -22,7 +22,13 @@ class Overlay(Overlay):
         # Use the default bitstream name
         if bitfile_name is None:
             this_dir = os.path.dirname(__file__)
-            bitfile_name = os.path.join(this_dir,'bitstream','rfsoc_amc_qat.bit')
+            if model=='qat':
+                bitfile_name = os.path.join(this_dir,'bitstream','rfsoc_amc_qat.bit')
+            elif model=='ptq':
+                bitfile_name = os.path.join(this_dir,'bitstream','rfsoc_amc_ptq.bit')
+            else:
+                bitfile_name = os.path.join(this_dir,'bitstream','rfsoc_amc_qat.bit')
+
         
         # Init the Overlay base class
         super().__init__(bitfile_name, **kwargs)
