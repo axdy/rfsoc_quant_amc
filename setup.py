@@ -35,6 +35,14 @@ def _append_package_data_under(pkg_root, dst_dir):
             rel_path = os.path.relpath(os.path.join(root, f), pkg_root)
             package_data.setdefault(package_name, []).append(rel_path)
 
+def _is_lfs_pointer(path):
+    try:
+        with open(path, "rb") as f:
+            head = f.read(256)
+        return b"version https://git-lfs.github.com/spec" in head
+    except FileNotFoundError:
+        return True
+
 # copy overlays to python package (now INSIDE the package)
 def copy_overlays():
     for repo_folder in alt_overlay_folder:
@@ -74,20 +82,18 @@ def copy_xrfclk():
     copy_tree(src_at_dir, dst_at_dir)
     _append_package_data_under(package_name, dst_at_dir)
 
-def copy_large_asset():
-    # Try a couple of likely locations
-    candidates = [
-        os.path.join(repo_board_dir, 'transmit_test_SNR.pkl'),                 # boards/<board>/rfsoc_quant_amc/...
-        os.path.join(os.path.dirname(__file__), 'transmit_test_SNR.pkl'),      # repo top-level
-    ]
-    for src in candidates:
-        if os.path.isfile(src):
-            os.makedirs(board_project_dir, exist_ok=True)
-            dst = os.path.join(board_project_dir, 'transmit_test_SNR.pkl')
-            shutil.copy2(src, dst)
-            print(f"Copied {src} -> {dst}")
-            return
-    print("Warning: transmit_test_SNR.pkl not found; skipping.")
+# NEW: ensure data/ is included in the package and the .pkl is not an LFS pointer
+def include_and_verify_data():
+    data_dir = os.path.join(package_name, 'data')
+    if os.path.isdir(data_dir):
+        _append_package_data_under(package_name, data_dir)
+    pkl_path = os.path.join(package_name, 'data', 'transmit_test_SNR.pkl')
+    if _is_lfs_pointer(pkl_path):
+        raise SystemExit(
+            "Error: rfsoc_quant_amc/data/transmit_test_SNR.pkl is missing or is a Git LFS pointer.\n"
+            "Run: git lfs install && git lfs fetch --all && git lfs checkout\n"
+            "Then rebuild the package."
+        )
 
 # --- run steps before setup() so the files exist when building the wheel/sdist ---
 check_env()
@@ -96,7 +102,7 @@ copy_overlays()
 copy_drivers()
 copy_notebooks()
 copy_xrfclk()
-copy_large_asset()
+include_and_verify_data()
 
 setup(
     name=package_name,
@@ -108,6 +114,6 @@ setup(
     author_email='a.maclellan@strath.ac.uk',
     packages=find_packages(include=[package_name, f"{package_name}.*"]),
     include_package_data=True,              # make sure package_data is included
-    package_data=package_data,              # <-- use what we built, not {'': data_files}
-    description='Modulation Classification for RFSoC using Quantised Neural Networks',
+    package_data=package_data,              # now includes data/, bitstream/, drivers/, xrfclk/
+    description='Modulation Classification for RFSoC using Dataflow Quantised CNNs',
 )
