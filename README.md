@@ -20,13 +20,40 @@ Data set construction:
 ![dataset_generation.png](images/dataset_generation.png)
 
 ## Installation
-### On RFSoC
-Make sure the RFSoC is connected to the internet (otherwise, zip the github repo and copy over to the RFSoC).
+### On the PC
+The project should ideally be cloned onto a host PC first. This way the Git LFS file can be pulled properly.
 
-Install with:
-- `pip3 install git+https://github.com/strath-sdr/rfsoc_quant_amc`
-- If you want to have the test set data please pull from Git LFS (500MB): `git lfs pull`
+1. Make sure you have Git LFS installed
+```sh
+sudo apt install git-lfs
+```
+2. Clone the repo
+```sh
+git clone https://github.com/axdy/rfsoc_quant_amc.git
+```
+3. Pull the LFS file (`transmit_test_SNR.pkl` ~580MB)
+```sh
+cd rfsoc_quant_amc
+git lfs pull
+git lfs checkout
+```
+4. Compress the project into a tar.gz
+```sh
+tar czf rfsoc_quant_amc.tar.gz --exclude=.git --exclude=.gitattributes -C "$(pwd)" .
+```
+5. Copy the tar file to the notebooks folder of the PYNQ session on the RFSoC.
 
+![alt text](images/pynq.png)
+
+### On the RFSoC PYNQ Session
+Open a terminal session and run:
+
+6. Install the package
+```sh
+pip3 install rfsoc_quant_amc.tar.gz
+```
+
+7. Run the example notebooks within the `rfsoc_quant_amc` folder. Make sure the RFSoC is configured as described in [Hardware Setup](#hardware-setup)
 
 ## Hardware Setup
 The demo performs best with a Nooelec Low-Noise Amplifier VGA with a low-pass filter in loopback between DAC_A and ADC_A. The VGA configuration is in digital mode (SW7 ON) with all switches to OFF.
