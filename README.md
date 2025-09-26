@@ -41,7 +41,7 @@ git lfs checkout
 ```sh
 tar czf rfsoc_quant_amc.tar.gz --exclude=.git --exclude=.gitattributes -C "$(pwd)" .
 ```
-5. Copy the tar file to the notebooks folder of the PYNQ session on the RFSoC.
+5. Copy the tar file to the notebooks folder of the PYNQ session on the RFSoC. (Wait for the file to copy over!)
 
 ![alt text](images/pynq.png)
 
@@ -50,6 +50,7 @@ Open a terminal session and run:
 
 6. Install the package
 ```sh
+cd /home/xilinx/jupyter_notebooks
 pip3 install rfsoc_quant_amc.tar.gz
 ```
 
