@@ -1,4 +1,4 @@
-set overlay_name "rfsoc_quant_amc"
+set overlay_name "vivado_prj"
 set design_name "block_design"
 
 # Open project
