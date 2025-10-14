@@ -15,8 +15,9 @@ class Overlay(Overlay):
     
     def __init__(self, bitfile_name=None, model='qat', **kwargs):
         """Setup Overlay for the RFSoC transmission and reception
-        bitfile_name: Optional. If left None, the bitstream 'amc_3q_4x2.bit'
+        bitfile_name: Optional. If left None, the bitstream 'rfsoc_amc_qat.bit'
                       will be used.
+        model: 'qat' or 'ptq' for different quantisation bitwidth models
         """
         
         # Use the default bitstream name

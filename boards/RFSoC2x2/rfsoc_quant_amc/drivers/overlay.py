@@ -5,7 +5,6 @@ import os
 from pynq import Overlay
 from pynq import allocate
 import xrfclk
-# from rfsoc_quant_amc import clocks
 import xrfdc
 import numpy as np
 
@@ -13,16 +12,23 @@ class Overlay(Overlay):
     """Overlay class for controlling the AMC dataset
     """
     
-    def __init__(self, bitfile_name=None, **kwargs):
+    def __init__(self, bitfile_name=None, model='qat', **kwargs):
         """Setup Overlay for the RFSoC transmission and reception
-        bitfile_name: Optional. If left None, the bitstream 'amc_3q_4x2.bit'
+        bitfile_name: Optional. If left None, the bitstream 'rfsoc_amc_qat.bit'
                       will be used.
+        model: 'qat' or 'ptq' for different quantisation bitwidth models
         """
         
         # Use the default bitstream name
         if bitfile_name is None:
             this_dir = os.path.dirname(__file__)
-            bitfile_name = os.path.join(this_dir,'bitstream','amc_3q_impr.bit')
+            if model=='qat':
+                bitfile_name = os.path.join(this_dir,'bitstream','rfsoc_amc_qat.bit')
+            elif model=='ptq':
+                bitfile_name = os.path.join(this_dir,'bitstream','rfsoc_amc_ptq.bit')
+            else:
+                bitfile_name = os.path.join(this_dir,'bitstream','rfsoc_amc_qat.bit')
+
         
         # Init the Overlay base class
         super().__init__(bitfile_name, **kwargs)
@@ -34,7 +40,6 @@ class Overlay(Overlay):
         self.dac_tile = self.rf.dac_tiles[0]
         self.dac_block = self.dac_tile.blocks[0]
         
-        # clocks.set_custom_lmclks()
         xrfclk.set_ref_clks()
         
     def initialise_dacs(self, pll_freq, sampling_freq, centre_freq):
@@ -93,6 +98,11 @@ class Overlay(Overlay):
         self.cnn_2.write(0x100,1)
         self.dma_controller_2 = self.receiver.dma_controller_2
         self.rx_dma_2 = self.receiver.rx_dma_2
+        # cnn 2w16a
+        self.cnn_3 = self.receiver.amc_cnn_2w16a
+        self.cnn_3.write(0x100,1)
+        self.dma_controller_3 = self.receiver.dma_controller_3
+        self.rx_dma_3 = self.receiver.rx_dma_3
         
     def send(self, data_buffer):
         """ Send data from PS memory to the DUC chain
@@ -116,26 +126,32 @@ class Overlay(Overlay):
         output_buffer = allocate(shape=(8,),dtype=np.uint32)
         output_buffer_1 = allocate(shape=(8,),dtype=np.uint32)
         output_buffer_2 = allocate(shape=(8,),dtype=np.uint32)
+        output_buffer_3 = allocate(shape=(8,),dtype=np.uint32)
         self.rx_dma_0.recvchannel.transfer(output_buffer)
         self.rx_dma_1.recvchannel.transfer(output_buffer_1)
         self.rx_dma_2.recvchannel.transfer(output_buffer_2)
+        self.rx_dma_3.recvchannel.transfer(output_buffer_3)
         self.dma_pkt.recvchannel.transfer(pkt_buffer)
         self.dma_controller.write(0x100,1)
         self.dma_controller_1.write(0x100,1)
         self.dma_controller_2.write(0x100,1)
+        self.dma_controller_3.write(0x100,1)
         self.pkt_gen.write(0x100,1)
         self.rx_dma_0.recvchannel.wait()
         self.rx_dma_1.recvchannel.wait()
         self.rx_dma_2.recvchannel.wait()
+        self.rx_dma_3.recvchannel.wait()
         self.dma_pkt.recvchannel.wait()
         self.dma_controller.write(0x100,0)
         self.dma_controller_1.write(0x100,0)
         self.dma_controller_2.write(0x100,0)
+        self.dma_controller_3.write(0x100,0)
         self.pkt_gen.write(0x100,0)
         output_bytes = output_buffer.tobytes()
         output_bytes_1 = output_buffer_1.tobytes()
         output_bytes_2 = output_buffer_2.tobytes()
-        return [np.frombuffer(output_bytes, dtype='float32'), np.frombuffer(output_bytes_1, dtype='float32'), np.frombuffer(output_bytes_2, dtype='float32'), pkt_buffer]
+        output_bytes_3 = output_buffer_3.tobytes()
+        return [np.frombuffer(output_bytes, dtype='float32'), np.frombuffer(output_bytes_1, dtype='float32'), np.frombuffer(output_bytes_2, dtype='float32'), np.frombuffer(output_bytes_3, dtype='float32'), pkt_buffer]
     
     def stop(self):
         self.tx_dma.sendchannel.stop()
@@ -155,13 +171,15 @@ class Overlay(Overlay):
     
     def receive_data(self):
         self.cnn.write(0x100,1)
-        [y_pred, y_pred_1, y_pred_2, complex_data] = self.receive()
+        [y_pred, y_pred_1, y_pred_2, y_pred_3, complex_data] = self.receive()
         max_value = np.max(y_pred)
         max_index = np.where(y_pred == max_value)
         max_value_1 = np.max(y_pred_1)
         max_index_1 = np.where(y_pred_1 == max_value_1)
         max_value_2 = np.max(y_pred_2)
         max_index_2 = np.where(y_pred_2 == max_value_2)
+        max_value_3 = np.max(y_pred_3)
+        max_index_3 = np.where(y_pred_3 == max_value_3)
         re_data, im_data = self.complex2realimag(complex_data)
         re, im = re_data / pow(2,14), im_data / pow(2,14)
-        return max_index[0][0], max_index_1[0][0], max_index_2[0][0], re, im
+        return max_index[0][0], max_index_1[0][0], max_index_2[0][0], max_index_3[0][0], re, im
