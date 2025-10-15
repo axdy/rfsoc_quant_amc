@@ -17,7 +17,7 @@ Once you are happy that the correct precisions have been applied throughout the 
 2. Right click `HDL_CNN_Model` -> HDL Coder -> HDL Workflow Advisor
 3. Follow through the process ensuring that AXI4-Stream is used for the input and output data ports.
 
-## High-level Diagram of AI Accelerator IP COre
+## High-level Diagram of AI Accelerator IP Core
 The following diagram shows an overview of what the Simulink models are implementing:
 
 ![fullcnnhardware.png](assets/fullcnnhardware.png)
