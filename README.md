@@ -43,7 +43,7 @@ tar czf rfsoc_quant_amc.tar.gz --exclude=.git --exclude=.gitattributes -C "$(pwd
 ```
 5. Copy the tar file to the notebooks folder of the PYNQ session on the RFSoC. (Wait for the file to copy over!)
 
-![alt text](images/pynq.png)
+<img src="images/pynq.png" alt="PYNQ session" width="500">
 
 ### On the RFSoC PYNQ Session
 Open a terminal session and run:
