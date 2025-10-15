@@ -19,7 +19,7 @@ Data set construction:
 
 ![dataset_generation.png](images/dataset_generation.png)
 
-## Installation
+## 💻 Installation
 ### On the PC
 The project should ideally be cloned onto a host PC first. This way the Git LFS file can be pulled properly.
 
@@ -56,14 +56,14 @@ pip3 install rfsoc_quant_amc.tar.gz
 
 7. Run the example notebooks within the `rfsoc_quant_amc` folder. Make sure the RFSoC is configured as described in [Hardware Setup](#hardware-setup)
 
-## Hardware Setup
+## ⚙️ Hardware Setup
 The demo performs best with a Nooelec VeGA Low-Noise Amplifier with a low-pass filter in loopback between DAC_A and ADC_A.
 
 Board specific hardware setups: 
 - [RFSoC2x2](./boards/RFSoC2x2/)
 - [RFSoC4x2](./boards/RFSoC4x2/)
 
-## Vivado
+## 🧩 Vivado
 The following software is required to use the project files in this repository.
 - Vivado Design Suite 2020.2
 
@@ -74,5 +74,18 @@ This project can be built with Vivado from the command line. Open Vivado 2020.2 
 Make the Vivado project by running the make commands below:
 `make all`
 
-# License
+# 📚 Publications
+The work demonstrated in this repository has been published in the following paper:
+
+> **Andrew Maclellan, Louise H. Crockett, and Robert W. Stewart**,  
+> *"RFSoC Modulation Classification With Streaming CNN: Data Set Generation & Quantized-Aware Training,"*  
+> IEEE Open Journal of Circuits and Systems, vol. 6, pp. 38–49, 2025.  
+> [doi:10.1109/OJCAS.2024.3509627](https://doi.org/10.1109/OJCAS.2024.3509627)
+
+If you use this repository, please **cite the above paper**.  
+Formal citation metadata is also available via GitHub’s “Cite this repository” feature.
+
+---
+
+# ⚖️ License
 BSD-3 Clause

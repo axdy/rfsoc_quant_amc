@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the following paper:"
+title: "RFSoC Modulation Classification With Streaming CNN: Data Set Generation & Quantized-Aware Training"
+authors:
+  - family-names: Maclellan
+    given-names: Andrew
+    affiliation: University of Strathclyde
+    email: a.maclellan@strath.ac.uk
+  - family-names: Crockett
+    given-names: Louise H.
+    affiliation: University of Strathclyde
+  - family-names: Stewart
+    given-names: Robert W.
+    affiliation: University of Strathclyde
+identifiers:
+  - type: doi
+    value: 10.1109/OJCAS.2024.3509627
+  - type: url
+    value: "https://doi.org/10.1109/OJCAS.2024.3509627"
+repository-code: "https://github.com/axdy/rfsoc_quant_amc"
+version: 0.1.0
+date-released: 2025-10-15
+license: BSD-3-Clause
