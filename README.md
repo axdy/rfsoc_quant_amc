@@ -46,6 +46,7 @@ tar czf rfsoc_quant_amc.tar.gz --exclude=.git --exclude=.gitattributes -C "$(pwd
 <img src="images/pynq.png" alt="PYNQ session" width="500">
 
 ### On the RFSoC PYNQ Session
+*Tested with PYNQ 3.0.1*
 Open a terminal session and run:
 
 6. Install the package
