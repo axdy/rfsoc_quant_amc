@@ -40,7 +40,7 @@ Use the `deeprfsoc.pkl` inside the `DeepRFSoC/` folder to train the models.
 Many wireless communications AI datasets are synthetically generated using tools such as GNU Radio or MATLAB. Synthetically generating signals allows for the simulation of over-the-air channel effects and noise. However, synthetically generated data does not fully encompass the distortions that have been applied to the signal from physically transmitting and receiving a signal induced by the hardware. For this reason, a combination of synthetically generated signals that were later transmitted and recorded were used to build the dataset. This way the signals received by the device will closely represent the signals the model was trained with.
 
 A diagram of the dataset transmission is displayed below:
-![dataset_generation.png](dataset_generation.png)
+![dataset_generation.png](./assets/dataset_generation.png)
 
 The modulation encoded signals are generated in MATLAB and transferred to the AMD RFSoC board. Using a DMA in cyclic mode [dma.py](https://github.com/Xilinx/PYNQ/blob/master/pynq/lib/dma.py), the synthetically generated signals are transmitted out of the RFSoC's DAC port, carried through a loopback cable and low-noise amplifier, into the RFSoC's ADC port where packets of the received signals are saved.
 
