@@ -57,10 +57,11 @@ pip3 install rfsoc_quant_amc.tar.gz
 7. Run the example notebooks within the `rfsoc_quant_amc` folder. Make sure the RFSoC is configured as described in [Hardware Setup](#hardware-setup)
 
 ## Hardware Setup
-The demo performs best with a Nooelec Low-Noise Amplifier VGA with a low-pass filter in loopback between DAC_A and ADC_A. The VGA configuration is in digital mode (SW7 ON) with all switches to OFF.
+The demo performs best with a Nooelec VeGA Low-Noise Amplifier with a low-pass filter in loopback between DAC_A and ADC_A.
 
-![RFSoC4x2_loopback.png](images/RFSoC4x2_loopback.png)
-
+Board specific hardware setups: 
+- [RFSoC2x2](./boards/RFSoC2x2/)
+- [RFSoC4x2](./boards/RFSoC4x2/)
 
 ## Vivado
 The following software is required to use the project files in this repository.
