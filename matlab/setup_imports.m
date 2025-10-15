@@ -1,9 +1,9 @@
 % Initialise CNN weights and input
 
-inputs_path = './test_30dB.mat'; % Move the .mat file with model inputs from the training scripts here
+inputs_path = './input_30dB.mat'; % Move the .mat file with model inputs from the training scripts here (adjust name)
 test_data_input = load(inputs_path);
 test_data_input.inputs = squeeze(test_data_input.inputs);
-weights_path = './model_16w16a.mat'; % Move the .mat file with model weights from the training scripts
+weights_path = './model_16w16a.mat'; % Move the .mat file with model weights from the training scripts (adjust name)
 amc_weights = load(weights_path);
 % ensure conv dims are H, W, C, N
 Wconv1 = permute(amc_weights.Wconv1,[3 4 2 1]);
