@@ -79,6 +79,11 @@ Make the Vivado project by running the make commands below:
 # 📚 Publications
 The work demonstrated in this repository has been published in the following paper:
 
+>**Andrew Maclellan**
+> *"Streaming-based CNN Architecture for Physical Layer Wireless Receivers: Deployment-Oriented Dataset Generation and Quantisation Methods"*
+> PhD Thesis
+> [doi:10.48730/4b4r-2d95](https://doi.org/10.48730/4b4r-2d95)
+
 > **Andrew Maclellan, Louise H. Crockett, and Robert W. Stewart**,  
 > *"RFSoC Modulation Classification With Streaming CNN: Data Set Generation & Quantized-Aware Training,"*  
 > IEEE Open Journal of Circuits and Systems, vol. 6, pp. 38–49, 2025.  
