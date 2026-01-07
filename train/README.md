@@ -44,5 +44,7 @@ A diagram of the dataset transmission is displayed below:
 
 The modulation encoded signals are generated in MATLAB and transferred to the AMD RFSoC board. Using a DMA in cyclic mode [dma.py](https://github.com/Xilinx/PYNQ/blob/master/pynq/lib/dma.py), the synthetically generated signals are transmitted out of the RFSoC's DAC port, carried through a loopback cable and low-noise amplifier, into the RFSoC's ADC port where packets of the received signals are saved.
 
+If you would like to generate the dataset yourself, the files are accessible in the `dataset_generation/`.
+
 ## After Training
 Once training has been complete, the notebooks will produce `.mat` files for the inputs and weights. These should be transferred to be used by the MATLAB/Simulink models to generate the AI accelerator IP cores.
