@@ -64,8 +64,8 @@ def _get_custom_lmclk_props(lmk_loc, lmx_loc):
         raise ValueError('TICS files must be .txt files.')
     
     # Strip file name from arguments
-    lmk_name = lmk_loc.split('/')[-1]
-    lmx_name = lmx_loc.split('/')[-1]
+    lmk_name = os.path.basename(lmk_loc)
+    lmx_name = os.path.basename(lmx_loc)
     
     # Split file name into LMK and LMX chip and freq (strip .txt)
     lmk_split = lmk_name.strip('.txt').split('_')
