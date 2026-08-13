@@ -1,3 +1,5 @@
+
+
 # RFSoC Quantised Automatic Modulation Classification
 This project showcases the custom quantised CNN hardware inference architecture for SoC-based wireless radio receivers like the **AMD RFSoC**.
 
@@ -13,7 +15,7 @@ The demonstration shows a comparison between 4 models with different weight quan
 
 ![demo.gif](images/demo.gif)
 
-The signal is received via an RF loopback cable connected to the RF-DAC. The modulates signal has been distorted by passing it through a simulated Rician multipath channel, adding Gaussian noise at levels ranging from -20dB to 24dB, and applying time, frequency, clock offsets.
+The signal is received via an RF loopback cable connected to the RF-DAC. The modulated signal has been distorted by passing it through a simulated Rician multipath channel, adding Gaussian noise at levels ranging from -20dB to 24dB, and applying time, frequency, clock offsets.
 
 Data set construction:
 
